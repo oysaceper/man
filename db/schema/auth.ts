@@ -3,10 +3,12 @@ import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
 export const user = pgTable("user", {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    email: text("email").notNull().unique(),
+    username: text("username").notNull().unique(), // Changed from email to username
+    email: text("email"), // Made optional since we login with username
     emailVerified: boolean("email_verified")
         .$defaultFn(() => false)
         .notNull(),
+    role: text("role", { enum: ['admin', 'guru_bk', 'guru', 'siswa', 'petugas_absen'] }).notNull().default('siswa'),
     image: text("image"),
     createdAt: timestamp("created_at")
         .$defaultFn(() => /* @__PURE__ */ new Date())
