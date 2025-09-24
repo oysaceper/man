@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { signOut } from "@/lib/auth-client"
+import { useUser } from "@/lib/user-context"
 import {
   IconCreditCard,
   IconDotsVertical,
@@ -43,13 +43,22 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
   const router = useRouter()
+  const { setUser } = useUser()
   const [isSigningOut, setIsSigningOut] = useState(false)
 
   const handleSignOut = async () => {
     setIsSigningOut(true)
     try {
-      await signOut()
-      router.push("/")
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        setUser(null)
+        router.push("/sign-in")
+        router.refresh()
+      }
     } catch (error) {
       console.error("Sign out error:", error)
     } finally {
@@ -107,21 +116,17 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <IconUserCircle />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconCreditCard />
-                Billing
+                Profil
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <IconNotification />
-                Notifications
+                Notifikasi
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut} disabled={isSigningOut}>
               <IconLogout />
-              {isSigningOut ? "Signing out..." : "Log out"}
+              {isSigningOut ? "Keluar..." : "Keluar"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

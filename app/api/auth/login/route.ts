@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateUser } from '@/lib/auth-helpers';
-import { auth } from '@/lib/auth';
+import { db } from '@/db';
+import { user } from '@/db/schema/auth';
+import { eq } from 'drizzle-orm';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,36 +17,58 @@ export async function POST(request: NextRequest) {
     }
 
     // Authenticate user
-    const user = await authenticateUser({ username, password });
+    const authenticatedUser = await authenticateUser({ username, password });
 
-    if (!user) {
+    if (!authenticatedUser) {
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
       );
     }
 
-    // Create session using better-auth
-    const session = await auth.api.signInEmail({
-      body: {
-        email: user.email || `${user.username}@man2ponorogo.local`,
-        password: password, // This won't actually be used for validation
-        callbackURL: '/dashboard',
-      },
-    });
+    // Find the user in the database to get the complete user object
+    const dbUser = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, authenticatedUser.id))
+      .limit(1);
 
-    return NextResponse.json({
+    if (dbUser.length === 0) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    const foundUser = dbUser[0];
+
+    // Create session data
+    const sessionData = {
+      id: foundUser.id,
+      name: foundUser.name,
+      username: foundUser.username,
+      role: foundUser.role,
+      email: foundUser.email,
+      image: foundUser.image,
+    };
+
+    // Create response with user data
+    const response = NextResponse.json({
       success: true,
-      user: {
-        id: user.id,
-        name: user.name,
-        username: user.username,
-        role: user.role,
-        email: user.email,
-        image: user.image,
-      },
+      user: sessionData,
       redirectUrl: '/dashboard',
     });
+
+    // Set session cookie (expires in 7 days)
+    response.cookies.set('user_session', JSON.stringify(sessionData), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    });
+
+    return response;
 
   } catch (error) {
     console.error('Login error:', error);
