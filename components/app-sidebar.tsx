@@ -35,130 +35,93 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-const staticData = {
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "#",
-      icon: IconDashboard,
-    },
-    {
-      title: "Lifecycle",
-      url: "#",
-      icon: IconListDetails,
-    },
-    {
-      title: "Analytics",
-      url: "#",
-      icon: IconChartBar,
-    },
-    {
-      title: "Projects",
-      url: "#",
-      icon: IconFolder,
-    },
-    {
-      title: "Team",
-      url: "#",
-      icon: IconUsers,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: IconSettings,
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: IconHelp,
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: IconSearch,
-    },
-  ],
-  documents: [
-    {
-      name: "Data Library",
-      url: "#",
-      icon: IconDatabase,
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: IconReport,
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: IconFileWord,
-    },
-  ],
-}
+
+const menuByRole = {
+  admin: {
+    navMain: [
+      { title: "Dashboard", url: "/dashboard", icon: IconDashboard },
+      { title: "Profil", url: "/dashboard/profil", icon: IconUsers },
+      { title: "Manajemen User", url: "/dashboard/users", icon: IconSettings },
+      { title: "Data Siswa", url: "/dashboard/students", icon: IconUsers },
+      { title: "Data Guru", url: "/dashboard/teachers", icon: IconUsers },
+      { title: "Data Kelas", url: "/dashboard/classes", icon: IconFolder },
+      { title: "Catatan Konseling", url: "/dashboard/counseling", icon: IconFileDescription },
+      { title: "Prestasi Siswa", url: "/dashboard/achievements", icon: IconChartBar },
+      { title: "Presensi Harian", url: "/dashboard/attendance", icon: IconListDetails },
+    ],
+    navSecondary: [
+      { title: "Logout", url: "/logout", icon: IconSettings },
+    ],
+    documents: [],
+  },
+  guru_bk: {
+    navMain: [
+      { title: "Dashboard", url: "/dashboard", icon: IconDashboard },
+      { title: "Profil", url: "/dashboard/profil", icon: IconUsers },
+      { title: "Data Siswa", url: "/dashboard/students", icon: IconUsers },
+      { title: "Catatan Konseling", url: "/dashboard/counseling", icon: IconFileDescription },
+      { title: "Prestasi Siswa", url: "/dashboard/achievements", icon: IconChartBar },
+      { title: "Presensi Harian", url: "/dashboard/attendance", icon: IconListDetails },
+    ],
+    navSecondary: [
+      { title: "Logout", url: "/logout", icon: IconSettings },
+    ],
+    documents: [],
+  },
+  guru: {
+    navMain: [
+      { title: "Dashboard", url: "/dashboard", icon: IconDashboard },
+      { title: "Profil", url: "/dashboard/profil", icon: IconUsers },
+      { title: "Data Siswa", url: "/dashboard/students", icon: IconUsers },
+      { title: "Prestasi Siswa", url: "/dashboard/achievements", icon: IconChartBar },
+      { title: "Presensi Harian", url: "/dashboard/attendance", icon: IconListDetails },
+    ],
+    navSecondary: [
+      { title: "Logout", url: "/logout", icon: IconSettings },
+    ],
+    documents: [],
+  },
+  siswa: {
+    navMain: [
+      { title: "Dashboard", url: "/dashboard", icon: IconDashboard },
+      { title: "Profil", url: "/dashboard/profil", icon: IconUsers },
+      { title: "Biodata", url: "/dashboard/biodata", icon: IconFileWord },
+      { title: "Prestasi Siswa", url: "/dashboard/achievements", icon: IconChartBar },
+    ],
+    navSecondary: [
+      { title: "Logout", url: "/logout", icon: IconSettings },
+    ],
+    documents: [],
+  },
+  petugas_absen: {
+    navMain: [
+      { title: "Dashboard", url: "/dashboard", icon: IconDashboard },
+      { title: "Input Absensi", url: "/dashboard/attendance", icon: IconListDetails },
+    ],
+    navSecondary: [
+      { title: "Logout", url: "/logout", icon: IconSettings },
+    ],
+    documents: [],
+  },
+};
+
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data: session } = useSession()
-  
+  const { data: session } = useSession();
+  type Role = keyof typeof menuByRole;
+  // Extend user type to include 'role' or fallback to 'admin'
+  const role: Role = (session && session.user && (session.user as { role?: string }).role as Role) || "admin";
+  const menu = menuByRole[role] || menuByRole.admin;
+
   const userData = session?.user ? {
     name: session.user.name || "User",
     email: session.user.email,
     avatar: session.user.image || "/codeguide-logo.png",
   } : {
     name: "Guest",
-    email: "guest@example.com", 
+    email: "guest@example.com",
     avatar: "/codeguide-logo.png",
-  }
+  };
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -178,13 +141,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={staticData.navMain} />
-        <NavDocuments items={staticData.documents} />
-        <NavSecondary items={staticData.navSecondary} className="mt-auto" />
+        <NavMain items={menu.navMain} />
+        {menu.documents.length > 0 && <NavDocuments items={menu.documents} />}
+        <NavSecondary items={menu.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={userData} />
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }
