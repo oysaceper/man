@@ -2,21 +2,21 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { signIn } from "@/lib/auth-client";
+import { useAuth } from "@/lib/auth-client";
 import { Loader2 } from "lucide-react";
 
 export default function SignInPage() {
-    const [email, setEmail] = useState("");
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
     const router = useRouter();
+    const { login } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -24,18 +24,15 @@ export default function SignInPage() {
         setError("");
 
         try {
-            const result = await signIn.email({
-                email,
-                password,
-            });
+            const success = await login(username, password);
 
-            if (result.error) {
-                setError(result.error.message || "Sign in failed");
-            } else {
+            if (success) {
                 router.push("/dashboard");
+            } else {
+                setError("Username atau password salah");
             }
         } catch (err) {
-            setError("An unexpected error occurred");
+            setError("Terjadi kesalahan yang tidak terduga");
         } finally {
             setIsLoading(false);
         }
@@ -45,9 +42,9 @@ export default function SignInPage() {
         <div className="min-h-screen flex items-center justify-center bg-background px-4">
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
-                    <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
+                    <CardTitle className="text-2xl font-bold">Login MAN 2 Ponorogo</CardTitle>
                     <CardDescription>
-                        Enter your email and password to access your account
+                        Masukkan username dan password untuk mengakses sistem
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -58,13 +55,13 @@ export default function SignInPage() {
                             </Alert>
                         )}
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="username">Username</Label>
                             <Input
-                                id="email"
-                                type="email"
-                                placeholder="Enter your email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                id="username"
+                                type="text"
+                                placeholder="NISN/NIP/Username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
                                 required
                                 disabled={isLoading}
                             />
@@ -74,7 +71,7 @@ export default function SignInPage() {
                             <Input
                                 id="password"
                                 type="password"
-                                placeholder="Enter your password"
+                                placeholder="Masukkan password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
@@ -85,21 +82,21 @@ export default function SignInPage() {
                             {isLoading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Signing in...
+                                    Sedang login...
                                 </>
                             ) : (
-                                "Sign In"
+                                "Login"
                             )}
                         </Button>
                     </form>
                 </CardContent>
                 <CardFooter className="text-center">
-                    <p className="text-sm text-muted-foreground">
-                        Don&apos;t have an account?{" "}
-                        <Link href="/sign-up" className="font-medium text-primary hover:underline">
-                            Sign up
-                        </Link>
-                    </p>
+                    <div className="text-xs text-muted-foreground space-y-1">
+                        <p><strong>Login sebagai:</strong></p>
+                        <p>Admin: username "admin", password "123456"</p>
+                        <p>Siswa: username NISN, password NISN</p>
+                        <p>Guru/Guru BK: username NIP, password NIP</p>
+                    </div>
                 </CardFooter>
             </Card>
         </div>

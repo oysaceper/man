@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Parkinsans } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AuthProvider } from "@/lib/auth-client";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,9 +20,9 @@ const parkinsans = Parkinsans({
 });
 
 export const metadata: Metadata = {
-  title: "Codeguide Starter Fullstack",
+  title: "MAN 2 Ponorogo - Sistem Informasi Siswa",
   description:
-    "A modern Next.js starter with TypeScript, TailwindCSS, shadcn/ui, Better Auth, and Drizzle ORM",
+    "Sistem Pendataan MAN 2 Ponorogo - Dashboard untuk Admin, Guru BK, Guru, Siswa, dan Petugas Absen",
 };
 
 export default function RootLayout({
@@ -40,7 +41,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

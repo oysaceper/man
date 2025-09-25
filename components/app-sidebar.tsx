@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { useSession } from "@/lib/auth-client"
+import { useAuth } from "@/lib/auth-client"
 import {
   IconCamera,
   IconChartBar,
@@ -96,7 +96,7 @@ const menuByRole = {
   petugas_absen: {
     navMain: [
       { title: "Dashboard", url: "/dashboard", icon: IconDashboard },
-      { title: "Input Absensi", url: "/dashboard/attendance", icon: IconListDetails },
+      { title: "Input Absensi", url: "/dashboard/attendance-input", icon: IconListDetails },
     ],
     navSecondary: [
       { title: "Logout", url: "/logout", icon: IconSettings },
@@ -107,16 +107,16 @@ const menuByRole = {
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data: session } = useSession();
+  const { user } = useAuth();
   type Role = keyof typeof menuByRole;
-  // Extend user type to include 'role' or fallback to 'admin'
-  const role: Role = (session && session.user && (session.user as { role?: string }).role as Role) || "admin";
+  
+  const role: Role = (user?.role as Role) || "admin";
   const menu = menuByRole[role] || menuByRole.admin;
 
-  const userData = session?.user ? {
-    name: session.user.name || "User",
-    email: session.user.email,
-    avatar: session.user.image || "/codeguide-logo.png",
+  const userData = user ? {
+    name: user.username || "User",
+    email: user.username + "@man2ponorogo.sch.id", // Generate email based on username
+    avatar: "/codeguide-logo.png",
   } : {
     name: "Guest",
     email: "guest@example.com",
@@ -132,9 +132,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <Link href="/">
-                <Image src="/codeguide-logo.png" alt="CodeGuide" width={32} height={32} className="rounded-lg" />
-                <span className="text-base font-semibold font-parkinsans">CodeGuide</span>
+              <Link href="/dashboard">
+                <Image src="/codeguide-logo.png" alt="MAN 2 Ponorogo" width={32} height={32} className="rounded-lg" />
+                <span className="text-base font-semibold font-parkinsans">MAN 2 Ponorogo</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
