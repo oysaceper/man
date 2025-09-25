@@ -1,18 +1,40 @@
-import { ChartAreaInteractive } from "@//components/chart-area-interactive"
-import { DataTable } from "@//components/data-table"
-import { SectionCards } from "@//components/section-cards"
-import data from "@/app/dashboard/data.json"
+"use client";
 
-export default function Page() {
-  return (
-    <div className="@container/main flex flex-1 flex-col gap-2">
-      <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-        <SectionCards />
-        <div className="px-4 lg:px-6">
-          <ChartAreaInteractive />
-        </div>
-        <DataTable data={data} />
+import { useAuth } from "@/lib/auth-client";
+import { AdminDashboard } from "@/components/dashboards/admin-dashboard";
+import { GuruBKDashboard } from "@/components/dashboards/guru-bk-dashboard";
+import { GuruDashboard } from "@/components/dashboards/guru-dashboard";
+import { SiswaDashboard } from "@/components/dashboards/siswa-dashboard";
+import { PetugasAbsenDashboard } from "@/components/dashboards/petugas-absen-dashboard";
+
+export default function DashboardPage() {
+  const { user } = useAuth();
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <p>Loading...</p>
       </div>
-    </div>
-  )
+    );
+  }
+
+  // Render role-specific dashboard
+  switch (user.role) {
+    case "admin":
+      return <AdminDashboard />;
+    case "guru_bk":
+      return <GuruBKDashboard />;
+    case "guru":
+      return <GuruDashboard />;
+    case "siswa":
+      return <SiswaDashboard />;
+    case "petugas_absen":
+      return <PetugasAbsenDashboard />;
+    default:
+      return (
+        <div className="flex items-center justify-center min-h-96">
+          <p>Role tidak dikenali: {user.role}</p>
+        </div>
+      );
+  }
 }
