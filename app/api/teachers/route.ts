@@ -1,6 +1,6 @@
 
 import { db, schema } from "@/db";
-import { eq, or, ilike, and } from "drizzle-orm";
+import { eq, or, ilike, and, count } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 // GET: List/filter/search teachers
@@ -8,6 +8,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q")?.trim();
   const subject = searchParams.get("subject")?.trim();
+  const countOnly = searchParams.get("count") === "true";
 
   let where = undefined;
   if (q && subject) {
@@ -20,6 +21,15 @@ export async function GET(req: Request) {
   } else if (subject) {
     where = ilike(schema.teachers.subject, `%${subject}%`);
   }
+
+  if (countOnly) {
+    const result = where
+      ? await db.select({ count: count() }).from(schema.teachers).where(where)
+      : await db.select({ count: count() }).from(schema.teachers);
+    
+    return NextResponse.json({ count: result[0].count });
+  }
+
   const teachers = where
     ? await db.select().from(schema.teachers).where(where)
     : await db.select().from(schema.teachers);
@@ -38,13 +48,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "NIP sudah terdaftar" }, { status: 409 });
   }
   // Insert teacher
-  const inserted = await db.insert(schema.teachers).values(data).returning();
+  const teacherId = crypto.randomUUID();
+  const teacherData = {
+    id: teacherId,
+    ...data,
+  };
+  const inserted = await db.insert(schema.teachers).values(teacherData).returning();
+  
   // Otomatis buat user guru
   await db.insert(schema.users).values({
-    id: inserted[0].id,
+    id: crypto.randomUUID(),
     username: data.nip,
     password: data.nip,
-    roleId: data.roleId || 2, // 2: guru_bk, 3: guru
+    roleId: data.roleId || 3, // 2: guru_bk, 3: guru
     refId: inserted[0].id,
   });
   return NextResponse.json(inserted[0]);
